@@ -754,16 +754,14 @@ public void run() { // inside CommandSceduler run()
 
 **Access to the Slide:**
 
-
-
-
-**My Contact:**
-Zimeng Chai
-*<zimeng.chai@gatech.edu>*
+<img src="images/qr-code.png" width="500" height="500" />
 
 </div>
 
 <div class="rdiv">
+
+**My Contact:**
+Zimeng Chai, *zimeng.chai@gatech.edu*
 
 The rest of the time is left for Q&As. Don't forget to check your belongings before you leave!
 
@@ -772,5 +770,3 @@ Opening Ceremony for Kickoff will be held at **Ferst Center for the Arts** at **
 ![#center](images/FIS_CRESCENDO_Logo_Horizontal_Full%20Color%20Reverse%20RGB.webp)
 
 </div>
-
-
