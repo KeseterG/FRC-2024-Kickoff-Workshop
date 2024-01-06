@@ -17,7 +17,7 @@ footer: \ *FRC 2024 Kickoff Software Workshop* *1/6/2024*
 ###### Command-Based Programming in Java and WPILibJ
 
 FRC Season 2024 Cresendo - GT Kickoff Software (Language) Workshop
-Instructional Center 105, 9:30 - 10:15
+Instructional Center 105, 9:30 - 10:30
 
 RoboJackets - Competitive Robotics at Georgia Tech
 Zimeng Chai
@@ -237,16 +237,15 @@ Author: The Cheesy Poofs, Team 254, [Code Link](https://github.com/Team254/FRC-2
 <div class="ldiv">
 
 Commands are at the core of Command-Based Programming practices.
-Commands are **actions** a robot can take to complete a certain task, combined in a certain way.
+Commands are **actions** a robot can take to complete a certain task, combined in a certain way, requiring certain subsystems.
 
-There a 4 core components of a command:
+There a 5 core components of a command:
 
 - Initialization - `initialize()`
 - Execution - `execute()`
 - End - `end(bool isInterrupted)`
-- Judge Condition - `isFinished()`
-
-The 4 components make the command itself a small state-machine, giving it high flexibility.
+- Finish Condition - `isFinished()`
+- Interrupted Condition
 
 </div>
 
@@ -291,19 +290,38 @@ public class ShooterCommand extends CommandBase {
 ## Structure of Command-Based Programs - Commands (Cont)
 <!-- _class: fixedtitleA -->
 
-Commands will be run repeated until `isFinished()` return true.
-Command will always be run once after a successful scedule. (i.e. `initialize()`, `execute()`, `end()` will be invoked at least once, even `isFinished()` returned true initially.)
+Commands will be run repeated until `isFinished()` return true, or being interrupted.
+Command will always be run once after a successful scedule. (i.e. `initialize()`, `execute()`, `end()` will be invoked at least once, even `isFinished()` returned true initially or instantly interrupted.)
 
 <br>
 
 ![#center](images/commands.drawio.png)
+
+## Structure of Command-Based Programs - Subsystems
+<!-- _class: fixedtitleA -->
+Subsystem extends `SubsystemBase` class. You can also create subsystems by implementing the `Subsystem` interface, but you have to register the subsystem yourself afterwards.
+
+```java
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public class Shooter extends SubsystemBase {
+    @Override
+    public void periodic() {
+        // periodic updates
+    }
+    @Override
+    public void simulationPeriodic() {
+        // periodic updates under simulation
+    }
+}
+```
 
 ## Structure of Command-Based Programs - Command Sceduler
 <!-- _class: cols-2-46 -->
 
 <div class="ldiv">
 
-Strictly speaking, Command-Based Programming is still "Looper". But it has more encapsulation, providing more convenience features, while solving the 3 problems mentioned before.
+Strictly speaking, Command-Based Programming is still "Looper". But it has more encapsulation, providing more convenience features.
 Singleton `CommandSceduler`'s `run` method is called on every iteration of `TimedRobot`.
 
 ```java
@@ -322,7 +340,7 @@ public class Robot extends TimedRobot {
 
 <div class="rimg">
 
-![#c](images/command_sceduler.png)
+<img src="images/t.drawio.png" height=500>
 
 </div>
 
@@ -331,25 +349,6 @@ public class Robot extends TimedRobot {
 <!-- _class: trans -->
 <!-- _footer: "" -->
 <!-- _paginate: "" -->
-
-## Creating Subsystems - Basics
-<!-- _class: fixedtitleA -->
-Subsystem extends `SubsystemBase` class. You can also create subsystems by implementing the `Subsystem` interface, but you have to register the subsystem yourself afterwards.
-
-```java
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-public class Shooter extends SubsystemBase {
-    @Override
-    public void periodic() {
-        // periodic updates
-    }
-    @Override
-    public void simulationPeriodic() {
-        // periodic updates under simulation
-    }
-}
-```
 
 ## Creating Subsystems - Unique Access using Singleton
 <!-- _class: cols-2-46 -->
@@ -432,14 +431,7 @@ The most important question to ask: **What should this Subsystem DO?**
 ```java
 public class Swerve extends SubsystemBase {
     private SwerveModuleState[] moduleStates;
-
-    public void drive(ChassisSpeeds chassisSpeeds) {
-        setModules(kinematics.toSwerveModuleStates(chassisSpeeds));
-    }
-
-    public void stop() {
-        drive(new ChassisSpeeds());
-    }
+    private Rotation2d gyroAngle = new Rotation2d();
 
     public void setModules(SwerveModuleState... states) {
         if(states.length != moduleStates.length) return;
@@ -459,6 +451,8 @@ public class Swerve extends SubsystemBase {
 }
 ```
 
+Drive Command: ChassisSpeeds -> Kinematics -> ModulesStates -> `setModules()`
+Target: Swerve Module State
 </div>
 
 <div class="rdiv">
@@ -473,17 +467,10 @@ public class Swerve extends SubsystemBase {
 
     public void drive(ChassisSpeeds cs, boolean isFieldOriented) {
         speed = isFieldOriented 
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(cs, gyroAngle)
-            : cs;
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(cs，gyroAngle) : cs;
     }
 
-    public void stop() {
-        drive(new ChassisSpeeds(), false);
-    }
-
-    public void orientModules(SwerveModuleStates... states) {
-        // orient the modules
-    }
+    public void orientModules(SwerveModuleStates... states) {}
 
     @Override
     public void periodic() {
@@ -496,7 +483,8 @@ public class Swerve extends SubsystemBase {
         }
     }
 ```
-
+Drive Command: Chassis Speed -> `drive()`
+Target: Swerve State
 </div>
 
 ## Creating Subsystems - Seperating Responsibilities (Cont)
@@ -551,8 +539,8 @@ Combining command groups can create complex commands.
 
 There are command we repeatedly use:
 
-- Run a single method
 - Run in parallel / sequence / race / deadline
+- Run a single method
 - Print debugging messages
 - ...
 
@@ -678,6 +666,8 @@ Triggers can be directly created via `Trigger` class, or can be created by the f
 
 ```java
 // Bind via CommandGenericHID Factories
+private CommandXboxController controller;
+
 private void configureBindings() {
     controller.button(1)
     .onTrue(
@@ -732,17 +722,16 @@ public void run() { // inside CommandSceduler run()
 
 </div>
 
-## Some Final Tips
+## Some Final Personal Suggestions
 <!-- _class: fixedtitleA -->
 
 - **KNOW YOUR LIMIT** – Time, Budget, and Human Resources.
 - **KNOW YOUR HARDWARE**. If possible, IMPROVE YOUR HARDWARE. There are something that is just too hard to control, or the time spent is not worth of the return.
-- **MAKE THINGS SIMPLE** (unless you have the resources and time to make it work). Do not overcomplicate things in the season. Utilize existing solutions.
 - Write code that can be tested, debugged, and (potentially) simulated, so you can find problems faster. Finding problems means that you have the chance to fix, refactor and improve.
 - Violent tests! There are things that will only break under field conditions.
 - Keep calm, keep passionate and enjoy!
 
-
+![#center](images/FIS_CRESCENDO_Logo_Horizontal_Full%20Color%20Reverse%20RGB.webp)
 
 ## Thank You For Listening! Happy Kickoff to Cresendo!
 <!-- _class: cols-2 -->
@@ -763,10 +752,9 @@ public void run() { // inside CommandSceduler run()
 **My Contact:**
 Zimeng Chai, *zimeng.chai@gatech.edu*
 
-The rest of the time is left for Q&As. Don't forget to check your belongings before you leave!
-
+The rest of the time is left for Q&As.
 Opening Ceremony for Kickoff will be held at **Ferst Center for the Arts** at **11:00**. Doors will open at **10:30**. Take your time to be there!
 
-![#center](images/FIS_CRESCENDO_Logo_Horizontal_Full%20Color%20Reverse%20RGB.webp)
+<iframe width="500" height="300" src="https://www.youtube.com/embed/cerAazSZpSU?si=kyieJ5p6NhebPHRB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 </div>
