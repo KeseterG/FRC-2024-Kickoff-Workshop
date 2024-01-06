@@ -16,7 +16,7 @@ footer: \ *FRC 2024 Kickoff Software Workshop* *1/6/2024*
 
 ###### Command-Based Programming in Java and WPILibJ
 
-FRC Season 2024 Cresendo - GT Kickoff Software (Language) Workshop
+FRC Season 2024 Crescendo - GT Kickoff Software (Language) Workshop
 Instructional Center 105, 9:30 - 10:30
 
 RoboJackets - Competitive Robotics at Georgia Tech
@@ -733,7 +733,7 @@ public void run() { // inside CommandSceduler run()
 
 ![#center](images/FIS_CRESCENDO_Logo_Horizontal_Full%20Color%20Reverse%20RGB.webp)
 
-## Thank You For Listening! Happy Kickoff to Cresendo!
+## Thank You For Listening! Happy Kickoff to Crescendo!
 <!-- _class: cols-2 -->
 <!-- _paginate: false -->
 <!-- _header: "" -->
